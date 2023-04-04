@@ -18,17 +18,22 @@ class JobsImporter
         }
     }
 
-    public function importJobs(): int
+    public function cleanDatabase(): bool
     {
         /* remove existing items */
         $this->db->exec('DELETE FROM job');
+        return true;
+    }
 
+    public function importJobsXml(): int
+    {
         /* parse XML file */
         $xml = simplexml_load_file($this->file);
 
         /* import each item */
         $count = 0;
         foreach ($xml->item as $item) {
+            printMessage($item->pubDate);
             $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
                 . '\'' . addslashes($item->ref) . '\', '
                 . '\'' . addslashes($item->title) . '\', '
@@ -36,6 +41,30 @@ class JobsImporter
                 . '\'' . addslashes($item->url) . '\', '
                 . '\'' . addslashes($item->company) . '\', '
                 . '\'' . addslashes($item->pubDate) . '\')'
+            );
+            $count++;
+        }
+        return $count;
+    }
+
+    public function importJobsJson(): int
+    {
+
+        /* parse XML file */
+        $json = file_get_contents($this->file);
+        $json = json_decode($json);
+
+        /* import each item */
+        $count = 0;
+        foreach ($json->offers as $item) {
+            $date = DateTimeImmutable::createFromFormat('D M H:i:s e Y');
+            $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
+                . '\'' . addslashes($item->reference) . '\', '
+                . '\'' . addslashes($item->title) . '\', '
+                . '\'' . addslashes($item->description) . '\', '
+                . '\'' . addslashes($item->urlPath) . '\', '
+                . '\'' . addslashes($item->companyname) . '\', '
+                . '\'' . addslashes($date->format("Y\m\d")) . '\')'
             );
             $count++;
         }
