@@ -57,14 +57,15 @@ class JobsImporter
         /* import each item */
         $count = 0;
         foreach ($json->offers as $item) {
-            $date = DateTimeImmutable::createFromFormat('D M H:i:s e Y');
+            $date = DateTimeImmutable::createFromFormat('D M d H:i:s T Y', $item->publishedDate);
+
             $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
                 . '\'' . addslashes($item->reference) . '\', '
                 . '\'' . addslashes($item->title) . '\', '
                 . '\'' . addslashes($item->description) . '\', '
                 . '\'' . addslashes($item->urlPath) . '\', '
                 . '\'' . addslashes($item->companyname) . '\', '
-                . '\'' . addslashes($date->format("Y\m\d")) . '\')'
+                . '\'' . addslashes($date->format("Y/m/d")) . '\')'
             );
             $count++;
         }
