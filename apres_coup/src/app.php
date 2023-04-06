@@ -5,8 +5,8 @@ Entry point of the project.
 To be run from the command line.
 ************************************/
 
-include_once(__DIR__.'/utils.php');
-include_once(__DIR__.'/config.php');
+include_once(__DIR__ . '/utils.php');
+include_once(__DIR__ . '/config.php');
 
 
 printMessage("Starting...");
@@ -17,7 +17,7 @@ $partners = $jobsLister->listPartner();
 
 foreach($partners as $partner){
     $extension = pathinfo($partner['file'], PATHINFO_EXTENSION);
-    $jobsImporter = new JobsImport($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
+    $jobsImporter = new JobsImport($PDO->getPDO(), RESSOURCES_DIR . $partner['file'], $partner['id']);
     $jobsLister->cleanDatabaseJob($partner['id']);
     try {
          switch ($extension) {

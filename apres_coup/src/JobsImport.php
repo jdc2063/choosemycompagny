@@ -6,10 +6,13 @@ class JobsImport
 
     private string $file;
 
-    public function __construct(PDO $db, string $file)
+    private int $id_partner;
+
+    public function __construct(PDO $db, string $file, int $id_partner)
     {
         $this->file = $file;
         $this->db = $db;
+        $this->id_partner = $id_partner;
     }
 
     public function parseXML(): int
@@ -33,7 +36,7 @@ class JobsImport
         $json = json_decode($json);
 
         $prefix = $json->offerUrlPrefix ? : '';
-        foreach ($json->item as $item) {
+        foreach ($json->offers as $item) {
             $this->importJobs($item->reference, $item->title, $item->description, $prefix, $item->urlPath, $item->companyname, $item->pubDate);
             $count++;
         }
@@ -43,10 +46,10 @@ class JobsImport
     public function importJobs($reference, $title, $description, $prefix, $url, $company_name, $publication): bool
     {
         $date = New DateTime($publication);
-        $sql = 'INSERT INTO job (reference, title, description, url, company_name, publication) VALUES (
-                :reference, :title,:description,:url,:company_name, :publication)';
+        $sql = 'INSERT INTO job (reference, title, description, url, company_name, publication, id_partenaire) VALUES (
+                :reference, :title,:description,:url,:company_name, :publication, :id_partenaire)';
         $statement = $this->db->prepare($sql);
-        $statement->execute(['reference' => $reference,'title'=>$title,'description'=>$description,'url'=>$prefix . $url, 'company_name'=> $company_name, 'publication' => $date->format("Y/m/d")]);
+        $statement->execute(['reference' => $reference,'title'=>$title,'description'=>$description,'url'=>$prefix . $url, 'company_name'=> $company_name, 'publication' => $date->format("Y/m/d"), 'id_partenaire'=> $this->id_partner]);
         return true;
     }
 
