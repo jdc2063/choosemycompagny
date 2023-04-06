@@ -11,20 +11,35 @@ include_once(__DIR__.'/config.php');
 
 printMessage("Starting...");
 
+$PDO = new ConnectionDB(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB);
+$jobsLister = new JobsLister($PDO->getPDO());
+$partners = $jobsLister->listPartner();
 
-/* import jobs from regionsjob.xml  */
-$jobsImporter = new JobsImporter(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB, RESSOURCES_DIR . 'regionsjob.xml');
-$jobsImporter->cleanDatabase();
-$count = $jobsImporter->importJobsXml();
-printMessage("> {count} jobs imported.", ['{count}' => $count]);
-
-$jobsImporter = new JobsImporter(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB, RESSOURCES_DIR . 'jobteaser.json');
-$count = $jobsImporter->importJobsJson();
-printMessage("> {count} jobs imported.", ['{count}' => $count]);
-
+foreach($partners as $partner){
+    $extension = pathinfo($partner['file'], PATHINFO_EXTENSION);
+	 switch ($extension) {
+		case 'xml' :
+            $jobsImporter = new JobsImporterXML($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
+            break;
+         case 'json':
+             $jobsImporter = new JobsImporterJSON($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
+             break;
+         default:
+             printMessage("L'extension ". $extension ." ne peux pas être traiter");
+             continue 2;
+	}
+    try {
+	    $jobsImporter->cleanDatabaseJob($partner['id']);
+        $count = $jobsImporter->importJobs();
+    } catch (Exception $e) {
+        $count = 0;
+        printMessage("Une erreur est survenue");
+    }
+    printMessage("> {count} jobs imported.", ['{count}' => $count]);
+}
 
 /* list jobs */
-$jobsLister = new JobsLister(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB);
+
 $jobs = $jobsLister->listJobs();
 
 printMessage("> all jobs ({count}):", ['{count}' => count($jobs)]);
