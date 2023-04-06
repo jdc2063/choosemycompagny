@@ -1,6 +1,6 @@
 <?php
 
-class JobsImporterXML
+class JobsParserXML
 {
     private PDO $db;
 
@@ -26,16 +26,13 @@ class JobsImporterXML
 
         /* import each item */
         $count = 0;
+        $sql = 'INSERT INTO job (reference, title, description, url, company_name, publication) VALUES (
+                :reference, :title,:description,:url,:company_name, :publication)';
+        $prefix = $xml->offerUrlPrefix ? : '';
         foreach ($xml->item as $item) {
-            printMessage($item->pubDate);
-            $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
-                . '\'' . addslashes($item->ref) . '\', '
-                . '\'' . addslashes($item->title) . '\', '
-                . '\'' . addslashes($item->description) . '\', '
-                . '\'' . addslashes($item->url) . '\', '
-                . '\'' . addslashes($item->company) . '\', '
-                . '\'' . addslashes($item->pubDate) . '\')'
-            );
+            $date = New DateTime($item->pubDate);
+            $statement = $this->db->prepare($sql);
+            $statement->execute(['reference' => $item->ref,'title'=>$item->title,'description'=>$item->description,'url'=>$prefix.$item->url, 'company_name'=> $item->company, 'publication' => $date->format("Y/m/d")]);
             $count++;
         }
         return $count;

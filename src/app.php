@@ -19,10 +19,10 @@ foreach($partners as $partner){
     $extension = pathinfo($partner['file'], PATHINFO_EXTENSION);
 	 switch ($extension) {
 		case 'xml' :
-            $jobsImporter = new JobsImporterXML($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
+            $jobsImporter = new JobsParserXML($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
             break;
          case 'json':
-             $jobsImporter = new JobsImporterJSON($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
+             $jobsImporter = new JobsParserJSON($PDO->getPDO(), RESSOURCES_DIR . $partner['file']);
              break;
          default:
              printMessage("L'extension ". $extension ." ne peux pas être traiter");

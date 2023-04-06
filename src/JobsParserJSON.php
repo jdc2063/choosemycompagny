@@ -1,6 +1,6 @@
 <?php
 
-class JobsImporterJSON
+class JobsParserJSON
 {
     private PDO $db;
 
@@ -31,16 +31,13 @@ class JobsImporterJSON
 
         /* import each item */
         $count = 0;
+        $sql = 'INSERT INTO job (reference, title, description, url, company_name, publication) VALUES (
+                :reference, :title,:description,:url,:company_name, :publication)';
+        $prefix = $json->offerUrlPrefix ? : '';
         foreach ($json->offers as $item) {
             $date = New DateTime($item->publishedDate);
-            $this->db->exec('INSERT INTO job (reference, title, description, url, company_name, publication) VALUES ('
-                . '\'' . addslashes($item->reference) . '\', '
-                . '\'' . addslashes($item->title) . '\', '
-                . '\'' . addslashes($item->description) . '\', '
-                . '\'' . addslashes($item->urlPath) . '\', '
-                . '\'' . addslashes($item->companyname) . '\', '
-                . '\'' . addslashes($date->format("Y/m/d")) . '\')'
-            );
+            $statement = $this->db->prepare($sql);
+            $statement->execute(['reference' => $item->reference,'title'=>$item->title,'description'=>$item->description,'url'=>$prefix.$item->urlPath, 'company_name'=> $item->companyname, 'publication' => $date->format("Y/m/d")]);
             $count++;
         }
         return $count;
