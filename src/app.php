@@ -12,7 +12,7 @@ include_once(__DIR__.'/config.php');
 printMessage("Starting...");
 
 
-/* import jobs from regionsjob.xml */
+/* import jobs from regionsjob.xml  */
 $jobsImporter = new JobsImporter(SQL_HOST, SQL_USER, SQL_PWD, SQL_DB, RESSOURCES_DIR . 'regionsjob.xml');
 $jobsImporter->cleanDatabase();
 $count = $jobsImporter->importJobsXml();
